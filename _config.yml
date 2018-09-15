@@ -24,8 +24,8 @@ github_username:  yaozhongcun
 
 # Build settings
 markdown: kramdown
-#theme: minima
-theme: dinky 
+theme: minima
+#theme: dinky 
 #plugins:
 #  - jekyll-feed
 

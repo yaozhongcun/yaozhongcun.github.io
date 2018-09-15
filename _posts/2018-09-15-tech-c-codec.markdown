@@ -43,9 +43,9 @@ utf8虽然最多使用6字节, 但就现有的unicode平面来讲, 最长也只�
 
 
 ## 实现 
+使用Utf8ToUcs4函数, 可以将utf8字符串转成vector<uint32_t>数组, 数组的uint32对应一个unicode字符.  然后将使用该数组做比较即可. 
 
-
-```  
+```  c++
 size_t Utf8StrTool::Utf8CharToUcs4Char(const std::string& utf8_str, size_t cursor, uint32_t& ucs4) {
     //We do math, that relies on unsigned data types
     const unsigned char* utf8TokUs = reinterpret_cast<const unsigned char*>(&(utf8_str[cursor]));

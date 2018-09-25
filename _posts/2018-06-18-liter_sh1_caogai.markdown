@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "读水浒 性格决定命运"
+title:  "见自己，见天地（读水浒有感）"
 date:   2018-06-10 08:14:12 +0800
 categories: 读书
 ---

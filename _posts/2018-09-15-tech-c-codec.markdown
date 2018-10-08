@@ -6,19 +6,21 @@ categories: 技术
 ---
 
 ## 提问 
-用户输入为utf8编码的字符串, 如下两个问题如何解决:
-1. 计算用户输入的中文字符的数量; 
-2. 屏蔽用户输入的emoji字符(某些字库无法显示). 
+用户的输入为utf8编码的字符串, 如下两个问题如何解决:
+1. 计算用户输入的中文字符的数量
+2. 屏蔽用户输入的emoji字符
 
-utf8作为一个变长的字符编码, 不利于字符的比较(有的时候3字节,有的时候4字节).
-字符编码规则,一般只按unicode给出区段.
-所以一个通用的解决方案是, 将utf8转为unicode,数符合规范的unicode字符的个数或者比较相应的区段.
+utf8作为一个变长的字符编码, 不利于字符的比较(有的时候3字节,有的时候4字节)；
+另外字符编码规则,一般只按unicode给出区段。
+所以一个通用的解决方案是, 将utf8转为unicode,对符合条件的unicode字符进行计数或者处理.
 
 
 ## utf8和unicode编码介绍
 
 标准的unicode采用4字节的整形来表示一个字符, 我们称为UCS4(通用字符集, 4字节)
-其中又分为了16个平面, 对于0号平面,我们也可以用两个字节的整形来表示一个字符, 就是最开始的UCS2
+其中又分为了16个平面, 对于0号平面,包含了最常见的基本字符，我们也可以用两个字节的整形来表示一个字符, 就是最开始的UCS2。
+
+如下是ucs4各平面的编码范围及用途。
 * 平面  始末字符值   中文名称    英文名称
 * 0号平面    U+0000 - U+FFFF 基本多文种平面 Basic Multilingual Plane，简称BMP
 * 1号平面    U+10000 - U+1FFFF   多文种补充平面 Supplementary Multilingual Plane，简称SMP
@@ -31,7 +33,7 @@ utf8作为一个变长的字符编码, 不利于字符的比较(有的时候3字
 * 15号平面   U+F0000 - U+FFFFF   保留作为私人使用区（A区）[2]    Private Use Area-A，简称PUA-A
 * 16号平面   U+100000 - U+10FFFF 保留作为私人使用区（B区）[2]    Private Use Area-B，简称PUA-B
  
-utf8虽然最多使用6字节, 但就现有的unicode平面来讲, 最长也只用了4个字节.
+utf8虽然最多使用6字节, 但就现有的unicode编码范围, utf8最长也只会用到4个字节. Utf8与unicode的编码对应关系如下：
 * Unicode 和 UTF-8 之间的转换关系表 ( x 字符表示码点占据的位 )
 * 码点的位数   码点起值    码点终值    字节序列    Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6
 *  7 U+0000  U+007F  1   0xxxxxxx
@@ -43,7 +45,10 @@ utf8虽然最多使用6字节, 但就现有的unicode平面来讲, 最长也只�
 
 
 ## 实现 
-使用Utf8ToUcs4函数, 可以将utf8字符串转成vector<uint32_t>数组, 数组中的元素,uint32的整形对应一个unicode字符的编码.  然后使用该数组与做后续处理即可(和目标字符编码比较,或者计算字符数量)
+有了以上规则，实现了Utf8ToUcs4函数, 可以将utf8字符串转成vector<uint32_t>数组, 数组中的元素,uint32的整形对应一个unicode字符的编码。
+然后使用该数组做后续处理即可(和目标字符编码比较,或者计算字符数量)。
+
+该函数可以继续完善下，得到utf8单个字符的字节数后，最好待处理的字符数是否大于等于该字节数。
 ```  c++
 size_t Utf8StrTool::Utf8CharToUcs4Char(const std::string& utf8_str, size_t cursor, uint32_t& ucs4) {
     //We do math, that relies on unsigned data types

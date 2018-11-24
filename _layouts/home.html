@@ -24,7 +24,6 @@ layout: default
         {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
         <span class="post-meta">{{ post.date | date: date_format }}</span> 
         &nbsp;&nbsp;&nbsp;&nbsp;
-
       		{%- for category in post.categories -%}
                   <span class="post-meta">分类：{{ category | escape }}</span> 
       		{%- endfor -%}
@@ -39,7 +38,6 @@ layout: default
             </a>
 	   <br>
 	   <br>
-
         <hr width=100% size=1 color=#bbbcbc style="FILTER: alpha(opacity=100,finishopacity=0)">
         
         {%- if site.show_excerpts -%}

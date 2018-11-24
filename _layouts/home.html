@@ -20,11 +20,27 @@ layout: default
             {{ post.title | escape }}
           </a>
         </h3>
+
+        {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+        <span class="post-meta">{{ post.date | date: date_format }}</span> 
+        &nbsp;&nbsp;&nbsp;&nbsp;
+
+      		{%- for category in post.categories -%}
+                  <span class="post-meta">分类：{{ category | escape }}</span> 
+      		{%- endfor -%}
+
         <section class="post-excerpt" itemprop="description">
             <p class="post-description">{{ post.excerpt | strip_html | truncatewords: 50 }}</p>
           </section>
-        {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
-        <span class="post-meta">{{ post.date | date: date_format }}</span> 
+
+	   <br>
+           <a class="btn" href="{{ post.url | relative_url }}">
+              阅读全文 »
+            </a>
+	   <br>
+	   <br>
+
+        <hr width=100% size=1 color=#bbbcbc style="FILTER: alpha(opacity=100,finishopacity=0)">
         
         {%- if site.show_excerpts -%}
           {{ post.excerpt }}

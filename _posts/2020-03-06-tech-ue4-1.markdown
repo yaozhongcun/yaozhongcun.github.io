@@ -1,0 +1,73 @@
+---
+layout: post
+title:  "服务器开发UE4学习笔记"
+date:   2020-3-6 08:14:12 +0800
+categories: 技术 
+---
+
+## 学习准备
+* 学习资料： learning c++ by creating games with ue4 by william sherif
+* 软件环境： mac + xcode + epic games launcher + ue4.24.3
+
+> ue4本身是一个游戏引擎，它还是依赖于底层的编译工具， mac上依赖于xcode提供的clang， windows上依赖vs2017
+
+## 第一天 依托模版创建一个demo游戏
+1. 首先创建一个工程
+* 新建项目->游戏->拼图类游戏->C++工程->输入工程名
+> 可以看到根据模版生成的工程，目录结构如下
+```
+drwxr-xr-x   4   staff  136  3  5 15:58 Binaries
+drwxr-xr-x   7   staff  238  3  5 15:58 Config
+drwxr-xr-x   8   staff  272  3  5 15:59 Content
+drwxr-xr-x  11   staff  374  3  5 21:46 Intermediate
+drwxr-xr-x   7   staff  238  3  5 21:46 Saved
+drwxr-xr-x   5   staff  170  3  5 15:58 Source
+-rw-r--r--   1   staff  188  3  5 15:58 chapter5.uproject
+drwxr-xr-x@  4   staff  136  3  5 15:58 chapter5.xcworkspace
+```
+0. 点击运行  
+可以看到此处，点击一个block的时候，它由蓝色变成了橘色, 再次点击，它没有变化。
+0. 打开文件进行编辑  
+修改了，Source/${project_name}/${project_name}Block.cpp的HandleClicked，使点击逻辑支持可以切换颜色。
+0. 点击运行旁边的编译，然后继续运行  
+可以看到游戏逻辑已经变化
+
+> 到此位置，我们迈开了学习ue4的第一步。
+首先创建一个工程，然后修改文件，然后编译，然后运行。  
+ue4引擎包含了editor，库。创建的工程应该生成了编译相关的脚本。利用系统编译器进行编译。
+
+
+### 正式工程的环境要求
+正式的项目磁盘空间占用300G，内存32G以上，显卡要求1660以上。
+
+### 代码相关的疑问
+代码中有如下类，AActor，APawn，AGameModeBase，APlayerController。
+引用了头文件，#include "CoreMinimal.h"
+有一些宏，需要进一步看代码，或者文档进行深入研究。
+
+Actor的属性暴露，
+UPROPERTY(Category=Grid, EditAnywhere, BlueprintReadOnly)
+
+CreateDefaultSubobject<UTextRenderComponent>(TEXT("ScoreText0"))
+
+
+### Map（场景）的相关疑问
+
+场景坐标，x y z
+
+有camera，aactor，label
+
+Content/PuzzleCPP/Maps/PuzzleExampleMap.xxx
+
+
+### 一些工作想法
+1. 建立后台流水线，对性能进行监控
+2. 代码逻辑要分离纯客户端表现的（label物件），客户端服务器通用逻辑，服务器通用逻辑（AI）等。
+
+
+
+## 第二天
+
+
+
+### 晨会的内容

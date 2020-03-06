@@ -68,6 +68,3 @@ Content/PuzzleCPP/Maps/PuzzleExampleMap.xxx
 
 ## 第二天
 
-
-
-### 晨会的内容

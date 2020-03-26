@@ -37,10 +37,10 @@ drwxr-xr-x@  4   staff  136  3  5 15:58 chapter5.xcworkspace
 ue4引擎包含了editor，库。创建的工程应该生成了编译相关的脚本。利用系统编译器进行编译。
 
 
-### 正式工程的环境要求
+#### 正式工程的环境要求
 正式的项目磁盘空间占用300G，内存32G以上，显卡要求1660以上。
 
-### 代码相关的疑问
+#### 代码相关的疑问
 代码中有如下类，AActor，APawn，AGameModeBase，APlayerController。
 引用了头文件，#include "CoreMinimal.h"
 有一些宏，需要进一步看代码，或者文档进行深入研究。
@@ -51,7 +51,7 @@ UPROPERTY(Category=Grid, EditAnywhere, BlueprintReadOnly)
 CreateDefaultSubobject<UTextRenderComponent>(TEXT("ScoreText0"))
 
 
-### Map（场景）的相关疑问
+#### Map（场景）的相关疑问
 
 场景坐标，x y z
 
@@ -60,11 +60,344 @@ CreateDefaultSubobject<UTextRenderComponent>(TEXT("ScoreText0"))
 Content/PuzzleCPP/Maps/PuzzleExampleMap.xxx
 
 
-### 一些工作想法
+#### 一些工作想法
 1. 建立后台流水线，对性能进行监控
 2. 代码逻辑要分离纯客户端表现的（label物件），客户端服务器通用逻辑，服务器通用逻辑（AI）等。
 
 
 
-## 第二天
+## 第二天 
 
+#### 在工程内添加一个自定义的类
+试验类C++ 11的相关语法的支持。 支持lambda表达式，initializer list（初始化列表），aut等语法。
+>  引擎要求#include "XXX.generated.h" 必须最后一行  
+cpp的同名头文件必须第一行。
+
+#### 如何使用在线文档，并研究了下FText
+
+在线文档的跳转倒是挺方便，但搜索功能比较差。所以在All class里进行查找。
+
+FText 是多语言和本地化的工具，所有对外显示的内容，尽量用FText来展示。
+
+FText的格式化方法。{0} {1}   {name}类似的占位符。如果是name的方式，可以用类似下面的map进行赋值。
+
+
+
+```c++
+FText 	Format (
+    FTextFormat Fmt,
+    const FFormatNamedArguments& InArguments
+)
+
+typedef TMap< FString, FFormatArgumentValue, 
+  FDefaultSetAllocator, FLocKeyMapFuncs< FFormatArgumentValue > > 
+FFormatNamedArguments;
+
+
+{ {"name", somevalue}, ...}
+```
+
+#### 构造map
+拖拽物件，拖拽材质。
+
+
+## 第三天
+
+#### 理解actor pawn character
+actor是world内可以摆放的类型。pawn是可以被玩家或者ai控制的object。character是一种特殊的pawn？
+
+#### 为物品增加碰撞检测
+否则会钻进石头里。 
+
+#### 为character添加蓝图
+蓝图里可以设置角色的mesh， 碰撞， camera，行走动画
+
+#### 设置工程的选项
+设置editor和启动的默认map。
+
+设置输入，并通过角色类通过代码进行绑定。 
+
+#### 为game mode添加蓝图
+设置默认的pawn对象，默认的hud对象。
+
+#### 思考 
+如何确定需要打包哪些资源？
+
+## 第四天 看代码
+
+#### 类命名规则
+派生自 Actor 的类前缀为 A，比如 AController。
+
+派生自 Object 的类前缀为 U，比如 UComponent。
+
+派生自 SWidget（Slate UI）的类前缀为 S，比如 SButton
+
+Enums 的前缀为 E，比如 EFortificationType。
+
+Interface 类的前缀通常为 I，比如 IAbilitySystemInterface。
+
+Template 类的前缀为 T，比如 TArray。
+
+其余类的前缀均为 字母 F ，比如 FVector。
+
+#### 其他的注意
+
+UDataTable
+TSubclassOf
+
+#### 模块相关的软件设计方法
+Actor上可以绑定多个Component
+
+
+## 第五天 看代码
+
+#### 研究代码的一些方法
+1. 看在线文档。使用google来搜索，效果要比unreeal网站的要好。
+2. 看源代码, 在${UE_PATH}/Engine/Source 下， 可以使用如下指令搜索  
+find . -name *.h | xargs grep UENUM | grep define  
+3. youtube教程
+
+#### String相关类&宏
+
+FCString 包含了很多静态的，操作string的函数。
+
+FString 类似于string类，但是屏蔽类宽字符影响。 operator \*，返回const TCHAR*
+
+FName ToString返回FString类。
+
+TEXT TCHAR常量宏。
+
+#### 一些反射机制
+
+遇到一个取枚举名字的操作：
+```
+const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("SomeType"), true);
+UE_LOG(LogTemp, Log, TEXT("enum name = %s"),
+	  *(EnumPtr->GetNameStringByValue((int64)100)) );
+```
+
+提供了类型的反射机制。
+
+#### log的实现
+利用ue_log，可以在游戏内输出，也可以输出到outputted window。
+
+Fatal Error Warning Display Log Verbose(not show in outputted window)
+
+#### 代码生成宏
+这些宏定义在
+Runtime/CoreUObject/Public/UObject/ObjectMacros.h
+中，看注释说，These macros wrap metadata parsed by the Unreal Header Tool, and are otherwise。 他们会被生成到xxx.generated.h头文件中。
+
+这些宏指定了，是不是会被蓝图所引用等。 
+
+UCLASS UENUM GENERATED_BODY()
+
+## 第六天 实现更好的log输出
+
+```
+const char* FileRawName(const char* file_path) {
+	const char* last_slash = file_path;
+	while (*file_path != '\0') {
+		if ( '/' == *file_path || '\\' == *file_path ) {
+			last_slash = file_path + 1;
+		}
+		file_path++;
+	}
+	return last_slash;
+}
+#define RAW_LOG(Level, FormatString, ...) UE_LOG(LogTemp, Level, TEXT("%s|%u|%s:%d(%s)|") FormatString, \
+	*FDateTime::Now().GetTimeOfDay().ToString(), \
+	FPlatformTLS::GetCurrentThreadId(), \
+    *FString(FileRawName(__FILE__)), __LINE__,  *FString(__FUNCTION__), ##__VA_ARGS__ )
+
+#define WARN_LOG(FormatString, ...) RAW_LOG(Warning, FormatString, ##__VA_ARGS__ )
+
+```
+
+#### 一些模块
+HAL hardware abstract layer
+
+FDateTime 时间相关的函数。   需要搞些基础的函数的性能测试
+
+FPlatformTLS Thread local storage and thread ID 
+
+
+#### 加载相关
+UAssetManager
+UDataTable
+LoadObject
+ResolveObject
+
+同步加载 VS  异步加载
+
+#### 其他
+
+代码的崩溃，会导致editor的崩溃。 应该有独立进程的模式？
+
+
+Cast 模版函数
+
+## 第七天
+
+#### 设计思路
+1. navmesh （AI）
+2. lua&蓝图
+3. 服务器对象的状态同步（inventory的生成应该是服务器生成，然后下发给客户端的）
+
+
+### 第8到11天  带网络功能的gameplay
+
+#### 工程的运行模式
+1. editor内运行，模拟单独的服务器
+2. 命令行运行
+
+> Volumes/Samsung_T5/UE_4.24/Engine/Binaries/Mac/UE4Editor.app/Contents/MacOS/UE4Editor ../../../../ue_study/Net/Net.uproject /Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap -game -port=17777  -server -log  
+ /Volumes/Samsung_T5/UE_4.24/Engine/Binaries/Mac/UE4Editor.app/Contents/MacOS/UE4Editor ../../../../ue_study/Net/Net.uproject  127.0.0.1  -port=17777 -game -log -windowed  -ResX=640 -ResY=480 
+
+ 所谓的ds就是使用-server启动的游戏进程？
+
+
+构建工程后， 工程会生成一个动态库，及一个module文件。路径分别是
+* ${project}/Binaries/${os}/UE4Editor-${project}-${seq}.dylib
+* ${project}/Binaries/${os}/UE4Editor.modules
+
+module文件指定了当前正在使用的动态库
+```
+{
+	"BuildId": "10570792",
+	"Modules": 
+	{
+		"Net": "UE4Editor-Net-9588.dylib"
+	}
+}
+```
+
+如果使用debug版本的editor， 及编译debug版本的module
+则会生成带"-DebugGame"后缀的module文件和动态库。
+* ${project}/Binaries/${os}/UE4Editor-${os}-DeubgGame.modules
+debug版本的ue4editor路径如下。
+/Volumes/Samsung_T5/UE_4.24/Engine/Binaries/Mac/UE4Editor-Mac-DebugGame.app/Contents/MacOS/UE4Editor-Mac-DebugGame 
+
+启动ds和客户端的命令如下
+* UE4Editor path_to_uproject /Game/../SomeMap -game -port=17777 -server -log
+* UE4Editor path_to_uproject ip -game -port=17777 -log -windowed  -ResX=640 -ResY=480 
+
+> 还有很多命令行参数可以研究。
+
+#### GamePlay的C++构造方法
+
+创建一个actor类。 然后为这个actor添加
+1. 一个MeshObject（UStaticMeshComponent）定义形状，及碰撞？添加一个UShapeComponent定义碰撞。
+2. 设置它的location和大小
+* SetRelativeLocation(FVector )，现对于parent（默认是level？）x是前后， y是左右，z是上下
+* SetRelativeScale3D(FVector )
+3. 设置它的材质，SetMaterial
+4. 改变它的物理（未实验）
+5. 设置它的碰撞（未实验）
+
+#### 理解旋转
+1. Yaw 偏转 z轴垂直的平面 / x轴正向， 网y轴正向方向开始计算
+2. Pitch 倾斜。 y抽旋转。视线方向和 xy平面的夹角， 0-90/270-360
+3. roll 旋转， x轴抽纸的平面开旋转
+
+#### 网络同步相关  理解一个进程里三个对象  
+editor运行， 启动两个player，ds独立运行。
+服务器会启动一个对象， 两个人客户端也创建，调用contruct。
+#### 网络同步相关  判断对象运行环境
+```
+enum ENetRole
+{
+    ROLE_None,
+    ROLE_SimulatedProxy,
+    ROLE_AutonomousProxy,
+    ROLE_Authority,
+    ROLE_MAX,
+}
+
+服务器和allinone游戏里运行的actor是ROLE_Authority类型，
+客户端里的是ROLE_SimulatedProxy或者ROLE_AutonomousProxy
+
+	if (Role != ROLE_Authority)
+	{
+		return;
+	}
+```
+
+```
+enum ENetMode
+{
+    NM_Standalone,
+    NM_DedicatedServer,
+    NM_ListenServer,
+    NM_Client,
+    NM_MAX,
+}
+指定了进程运行的模式。
+是否根据ENetRole还是ENetMode要根据实际需要进行选择。 
+
+NM_DedicatedServer可以忽略表现相关的操作。
+
+	if ( GetWorld()->GetNetMode() != NM_DedicatedServer ) {
+		OnRep_Material();
+	}
+```
+#### 网络同步相关  
+启动Actor同步，构造函数中，
+1. Actor同步，创建及销毁。  
+SetReplicate(true);
+2. Movement同步，位置和大小（？）  
+SetReplicateMovement(true);
+3. Component同步（未实验）
+4. rpc同步
+5. 变量同步
+
+变量同步方法.
+```
+	UPROPERTY(ReplicatedUsing=OnRep_Material)
+	FString material_str;  // Reliable?
+	/** RepNotify for changes made to current health.*/
+	UFUNCTION()
+	void OnRep_Material(); 
+
+	/** Property replication */
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override {
+		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(ACube, material_str);
+	}
+```
+> 需要引用#include "Net/UnrealNetwork.h"， 不然会编译报错。
+
+RPC同步方法
+```
+可以指定Server执行，Client执行，是否可靠
+	UFUNCTION(NetMulticast, Reliable)
+	void SetZSize(int32 z);  // NetMulticast, Reliable
+```
+> 需要实现SetZSize_Implementation，否则会报虚函数的不存在的错误
+
+不过还是需要属性同步， 因为玩家可能中途进入。
+
+
+#### 重要编程职能 成员变量的声明
+UObject作为成员变量，务必用UPropery声明，而不能使用c++原生指针。 
+UObject会统一被gc管理，使用UProperty声明，会纳入引擎的映射机制，根据使用情况，决定是否释放。
+而原生指针不会产生这种映射引用关系，可能导致gc的提前释放。
+
+如果想创建全局单例，且不想被释放，可以加到gc的根节点。AddToRoot。
+当然也可以不做单利，而是把这个对象放到level差不多统计的object上。
+
+
+
+#### 重要编程职能 初始化实际
+constructor不要load material？
+
+#### 加载的方法
+FObjectFinders 职能用在object的constructor中？
+
+#### 常见问题排查
+lsof -i:17777
+
+#### 其他功能类
+TArray   
+     Empty。。。
+FMath

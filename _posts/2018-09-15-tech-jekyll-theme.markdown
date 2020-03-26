@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "jekyll简易实操手册"
+title:  "jekyll简易实操手册 & git基本使用"
 date:   2018-09-10 08:14:12 +0800
 categories: 技术 
 ---
